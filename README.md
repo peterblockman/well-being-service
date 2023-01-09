@@ -1,5 +1,5 @@
 
-## Well-being services
+## Well-being service
 
 ### Introduction
 
