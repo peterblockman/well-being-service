@@ -13,37 +13,19 @@ There are four smart contracts:
 
 1. [Identity.sol](https://github.com/peterblockman/well-being-service/blob/main/contracts/Identity.sol)
 
-An implementation of the ERC725Y standard that allows users to
-
-create a decentralized identity
+    An implementation of the ERC725Y standard that allows users to create a decentralized identity
 
 2. [IdentityRegistry.sol](https://github.com/peterblockman/well-being-service/blob/main/contracts/IdentityRegistry.sol)
 
-It stores a mapping of identity smart contract addresses to a
-
-boolean value indicating whether or not the identity exists. It also
-
-stores a mapping of user wallet addresses to identify the owner of
-
-the identity.
+    It stores a mapping of identity smart contract addresses to a boolean value indicating whether or not the identity exists. It also stores a mapping of user wallet addresses to identify the owner of the identity.
 
 3. [SocialGraph.sol](https://github.com/peterblockman/well-being-service/blob/main/contracts/SocialGraph.sol)
 
-A social graph implementation on Ethereum. it allows users to create
-
-and maintain a social graph on the Ethereum blockchain. It allows
-
-users to connect with each other and rate the impact of these
-
-connections
+    A social graph implementation on Ethereum. it allows users to create and maintain a social graph on the Ethereum blockchain. It allows users to connect with each other and rate the impact of these connections
 
 4. [DataExchange.sol](https://github.com/peterblockman/well-being-service/blob/main/contracts/DataExchange.sol)
 
-A marketplace for buying and selling data. It also includes a simple
-
-reputation system to help buyers and sellers evaluate each other's
-
-trustworthiness.
+    A marketplace for buying and selling data. It also includes a simple reputation system to help buyers and sellers evaluate each other's trustworthiness.
 
 ## Test 
 Use [Remix](https://remix.ethereum.org/)
