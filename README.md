@@ -1,28 +1,55 @@
-REMIX DEFAULT WORKSPACE
 
-Remix default workspace is present when:
-i. Remix loads for the very first time 
-ii. A new workspace is created with 'Default' template
-iii. There are no files existing in the File Explorer
+## Well-being services
 
-This workspace contains 3 directories:
+### Introduction
 
-1. 'contracts': Holds three contracts with increasing levels of complexity.
-2. 'scripts': Contains four typescript files to deploy a contract. It is explained below.
-3. 'tests': Contains one Solidity test file for 'Ballot' contract & one JS test file for 'Storage' contract.
+This is a simple implementation for a well-being service on Ethereum.
 
-SCRIPTS
+**Disclaimer**: All the smart contracts are for demonstration purposes. Many security measurements and gas optimizations are not taken into consideration.
 
-The 'scripts' folder has four typescript files which help to deploy the 'Storage' contract using 'web3.js' and 'ethers.js' libraries.
+### Smart contracts
 
-For the deployment of any other contract, just update the contract's name from 'Storage' to the desired contract and provide constructor arguments accordingly 
-in the file `deploy_with_ethers.ts` or  `deploy_with_web3.ts`
+There are four smart contracts:
 
-In the 'tests' folder there is a script containing Mocha-Chai unit tests for 'Storage' contract.
+1. [Identity.sol](https://github.com/peterblockman/well-being-service/blob/main/contracts/Identity.sol)
 
-To run a script, right click on file name in the file explorer and click 'Run'. Remember, Solidity file must already be compiled.
-Output from script will appear in remix terminal.
+An implementation of the ERC725Y standard that allows users to
 
-Please note, require/import is supported in a limited manner for Remix supported modules.
-For now, modules supported by Remix are ethers, web3, swarmgw, chai, multihashes, remix and hardhat only for hardhat.ethers object/plugin.
-For unsupported modules, an error like this will be thrown: '<module_name> module require is not supported by Remix IDE' will be shown.
+create a decentralized identity
+
+2. [IdentityRegistry.sol](https://github.com/peterblockman/well-being-service/blob/main/contracts/IdentityRegistry.sol)
+
+It stores a mapping of identity smart contract addresses to a
+
+boolean value indicating whether or not the identity exists. It also
+
+stores a mapping of user wallet addresses to identify the owner of
+
+the identity.
+
+3. [SocialGraph.sol](https://github.com/peterblockman/well-being-service/blob/main/contracts/SocialGraph.sol)
+
+A social graph implementation on Ethereum. it allows users to create
+
+and maintain a social graph on the Ethereum blockchain. It allows
+
+users to connect with each other and rate the impact of these
+
+connections
+
+4. [DataExchange.sol](https://github.com/peterblockman/well-being-service/blob/main/contracts/DataExchange.sol)
+
+A marketplace for buying and selling data. It also includes a simple
+
+reputation system to help buyers and sellers evaluate each other's
+
+trustworthiness.
+
+## Test 
+Use [Remix](https://remix.ethereum.org/)
+### Flow
+ 1. Use [DGIT](https://medium.com/remix-ide/github-in-remix-ide-356de378f7da) to connect Remix with this repo.
+ 2. Deploy `IdentityRegistry` smart contract
+ 3. Deploy 2 `Identity` smart contracts, and grab their addresses
+ 4. Deploy `SocialGraph` and `DataExchange`
+ 5. Use the identity addresses in the `SocialGraph` smart contract and `DataExchange` smart contract
