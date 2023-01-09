@@ -12,13 +12,16 @@ contract Identity is ERC725YCore {
     /**
      * @notice Sets the owner of the contract
      * @param _newOwner the owner of the contract. It is the user's wallet smart contract
+     * @param _identityRegistry the address of the IdentityRegistry smart contract
+     * @param _name user'S first name
+     * @param _age user's age
      */
-    constructor(address _newOwner, address _identityRegistry, string memory name, uint256 age) {
+    constructor(address _newOwner, address _identityRegistry, string memory _name, uint256 _age) {
         require(_newOwner != address(0), "Ownable: new owner is the zero address");
         OwnableUnset._setOwner(_newOwner);
         // set name and age
-        setData(keccak256(abi.encodePacked("name")), bytes(name));
-        setData(keccak256(abi.encodePacked("age")), abi.encodePacked(age));
+        setData(keccak256(abi.encodePacked("name")), bytes(_name));
+        setData(keccak256(abi.encodePacked("age")), abi.encodePacked(_age));
         // add identity
         identityRegistry = IdentityRegistry(_identityRegistry);
         identityRegistry.addIdentity(_newOwner, address(this));
