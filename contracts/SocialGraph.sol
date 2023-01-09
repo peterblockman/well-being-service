@@ -10,6 +10,7 @@ contract SocialGraph {
         _;
     }
 
+
     // A user in the social graph
     struct User {
         // The identity of the user 
@@ -32,63 +33,78 @@ contract SocialGraph {
         identityRegistry = IdentityRegistry(_identityRegistry);
     }
 
+    /**
+     * Makes an offer to purchase a listing
+     * @param _userAddress: wallet address of a user
+     */
+    function _getIdentityOfAUser(address _userAddress) private view returns (address){
+        address userIdentity = identityRegistry.getIdentityOfAUser(_userAddress);
+        require(userIdentity != address(0), "identity not exist");
+        return userIdentity;
+    }
+
      /**
      * Add a user to the social graph
      * @param _identity: the Identity smart contract address of the user
      */
-    function addUser(address _identity) public {
+    function _addUser(address _identity) private {
         require(_identity != address(0));
         require(users[_identity].identity == address(0));
         users[_identity].identity = _identity;
     }
 
-    /**
-     * Add a connection between two users in the social graph
-     * @param _userAIdentity: the Identity address of _userA
-     * @param _userBIdentity: the Identity address of _userB
-     */
-    function addConnection(
-        address _userAIdentity,
-        address _userBIdentity
-    ) userExist(_userAIdentity) userExist(_userBIdentity) public {
-        require(_userAIdentity != _userBIdentity);
-        users[_userAIdentity].friends[_userBIdentity] = true;
-        users[_userBIdentity].friends[_userAIdentity] = true;
-        users[_userAIdentity].connectionImpact[_userBIdentity] = 1;
-        users[_userBIdentity].connectionImpact[_userAIdentity] = 1;
+
+    function register() external {
+        address userIdentity = _getIdentityOfAUser(msg.sender);
+        _addUser(userIdentity);
     }
 
     /**
-     * Remove a connection between two users in the social graph
-     * @param _userAIdentity: the Identity address of _userA
-     * @param _userBIdentity: the Identity address of _userB
+     * Add a connection between two users in the social graph
+     * @param _friendIdentity: the Identity address of a friend
      */
-    function removeConnection(address _userAIdentity, address _userBIdentity) userExist(_userAIdentity) userExist(_userBIdentity) public {
-        require(_userAIdentity != _userBIdentity);
-        users[_userAIdentity].friends[_userBIdentity] = false;
-        users[_userBIdentity].friends[_userAIdentity] = false;
-        delete users[_userAIdentity].connectionImpact[_userBIdentity];
-        delete users[_userBIdentity].connectionImpact[_userAIdentity];
+    function addConnection(
+        address _friendIdentity
+    ) userExist(_friendIdentity) external {
+        address _userIdentity = _getIdentityOfAUser(msg.sender);
+        require(_userIdentity != _friendIdentity, "same identity");
+        users[_userIdentity].friends[_friendIdentity] = true;
+        users[_friendIdentity].friends[_userIdentity] = true;
+        users[_userIdentity].connectionImpact[_friendIdentity] = 1;
+        users[_friendIdentity].connectionImpact[_userIdentity] = 1;
+    }
+
+
+    /**
+     * Remove a connection between two users in the social graph
+     * @param _friendIdentity: the Identity address of a friend
+     */
+    function removeConnection(address _friendIdentity) userExist(_friendIdentity) external {
+        address _userIdentity = _getIdentityOfAUser(msg.sender);
+        require(_userIdentity != _friendIdentity, "same identity");
+        users[_userIdentity].friends[_friendIdentity] = false;
+        users[_friendIdentity].friends[_userIdentity] = false;
+        delete users[_userIdentity].connectionImpact[_friendIdentity];
+        delete users[_friendIdentity].connectionImpact[_userIdentity];
     }
 
     /**
      * allow users to rate the well-being impact of their connections.
      * For example, users could rate their connections on a scale from 1 to 5, 
      * with 1 being a very negative impact on well-being and 5 being a very positive impact
-     * @param _identity: the Identity address of the user
      * @param _friendIdentity: the Identity address of the user's friend
      * @param _rating: rating score of the connection. Scale from 1 to 5.
      */
     function rateConnectionImpact(
-        address _identity,
         address _friendIdentity, 
         uint8 _rating
-    ) userExist(_identity) userExist(_friendIdentity) public {
-        require(identityRegistry.identityExists(_identity), "user identity not exist");
+    ) userExist(_friendIdentity) public {
+        address _userIdentity = _getIdentityOfAUser(msg.sender);
+        require(_userIdentity != _friendIdentity, "same identity");
         require(identityRegistry.identityExists(_friendIdentity), "user's friend identity not exist");
         require(_rating >= 1 && _rating <= 5, "rating invalid");
 
-        User storage user = users[_identity];
+        User storage user = users[_userIdentity];
 
         // Ensure that the caller and the friend are connected in the social graph
         require(user.friends[_friendIdentity] = true, "not friend");
@@ -97,11 +113,13 @@ contract SocialGraph {
         user.connectionImpact[_friendIdentity] = _rating;
     }
 
-    function isFriend(address _identity, address _friendIdentity) external view returns (bool) {
-        return users[_identity].friends[_friendIdentity];
+    function isFriend(address _userIdentity, address _friendIdentity) external view returns (bool) {
+        return users[_userIdentity].friends[_friendIdentity];
     }
 
     function getConnectionImpact(address _identity, address _friendIdentity) external view returns (uint256) {
         return users[_identity].connectionImpact[_friendIdentity];
     }
+
+    
 }
