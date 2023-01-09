@@ -43,10 +43,7 @@ contract DataExchange {
         // The number of transactions the user has participated in
         uint256 numTransactions;
     }
-    // All listings on the marketplace
-    Listing[] public allListings;
-    // All offers on the marketplace
-    Offer[] public allOffers;
+  
     // Map listing ID to listing
     mapping (uint256 => Listing) public listings;
     // Map offer ID to offer
@@ -73,95 +70,106 @@ contract DataExchange {
      * @param _price: the listing price
      */
     function createListing(string memory _description, uint256 _price) public {
-        require(_price > 0);
+        require(_price > 0, "invalid price");
+        address sellerIdentity = _getIdentityOfAUser(msg.sender);
 
         uint256 listingId = listingIdCounter + 1;
         listingIdCounter++;
         Listing memory listing = Listing({
-            seller: msg.sender, 
+            seller: sellerIdentity, 
             description: _description, 
             price: _price, 
             decryptionKey: "", // decryptionKey only revealed after payment
             status: LisingtingStatus.ACTIVE
         });
-        allListings.push(listing);
 
         listings[listingId] = listing;
     }
     
-    function _getIdentityOfAUser(address userAddress) private view returns (address){
-        address sellerIdentity = identityRegistry.getIdentityOfAUser(userAddress);
-        require(sellerIdentity != address(0), "identity not exist");
-        return sellerIdentity;
+    /**
+     * Makes an offer to purchase a listing
+     * @param _userAddress: wallet address of a user
+     */
+    function _getIdentityOfAUser(address _userAddress) private view returns (address){
+        address userIdentity = identityRegistry.getIdentityOfAUser(_userAddress);
+        require(userIdentity != address(0), "identity not exist");
+        return userIdentity;
     }
+
     /**
      * Makes an offer to purchase a listing
      * @param _listingId: the id of a listing
      * @param _price: the offering price
      */
     function makeOffer(uint256 _listingId, uint256 _price) payable public {
-        require(_listingId > 0 && _listingId <= allListings.length, "invalid _listingId");
+        require(_listingId > 0 && _listingId <= listingIdCounter, "invalid _listingId");
         require(_price == msg.value && _price > 0, "invalid price");
 
-        uint256 listingPrice = listings[_listingId].price;
-        require(msg.value >= listingPrice, "offering price smaller than listing price");
-        address sellerIdentity = _getIdentityOfAUser(msg.sender);
-        require(sellerIdentity != listings[_listingId].seller, "you can not make offer to your listing");
+        require(msg.value >= listings[_listingId].price, "offering price smaller than listing price");
+        address buyerIdentity = _getIdentityOfAUser(msg.sender);
+        require(buyerIdentity != listings[_listingId].seller, "you can not make offer to your listing");
 
         Offer memory offer = Offer({
-            buyer: sellerIdentity, 
+            buyer: buyerIdentity, 
             listingId: _listingId, 
             price: _price, 
             status: OfferStatus.PENDING
         });
 
         offerIdCounter++;
-        allOffers.push(offer);
         offers[offerIdCounter] = offer;
 
         listingToOffer[_listingId].push(offer);
     }
 
-    /**
-     * @notice this is a naive approach. Do not use it in production.
-     * Release the decryption key
-     * @param listingId: id of a listing
-     */
-    function _releaseDecryptionKey(uint256 listingId, bytes32 _decryptionKey) private {
-        listings[listingId].decryptionKey = _decryptionKey;
-    }
-
+    
     /**
      * Accepts an offer to purchase a listing
      * @param _offerId: id of an offer
-     * @param _decryptionKey: the encryption key for data to sell
      */
-    function acceptOffer(uint256 _offerId, bytes32 _decryptionKey) public {
-        require(_offerId > 0 && _offerId <= allOffers.length, "invalid _offerId");
-        address buyerIdentity = _getIdentityOfAUser(msg.sender);
+    function acceptOffer(uint256 _offerId) public {
+        require(_offerId > 0 && _offerId <= offerIdCounter, "invalid _offerId");
+        address sellerIdentity = _getIdentityOfAUser(msg.sender);
 
         Offer storage offer = offers[_offerId];
         require(offer.status == OfferStatus.PENDING, "invalid offer status");
-        require(buyerIdentity != offer.buyer, "you can not accept your offer");
-        require(listings[offer.listingId].seller == buyerIdentity, "does not have the permission");
+        require(sellerIdentity != offer.buyer, "you can not accept your offer");
+        require(listings[offer.listingId].seller == sellerIdentity, "does not have the permission");
+        // update offer status
         offer.status = OfferStatus.ACCEPTED;
 
         // update listing status
         listings[offer.listingId].status = LisingtingStatus.SOLD;
-
-        // release decryptionKey
-        // naive approach. Do not use it in production.
-        _releaseDecryptionKey(offer.listingId, _decryptionKey);
     }
+
+    /**
+     * @notice this is a naive approach. Do not use it in production.
+     * Release the decryption key
+     * @param _offerId: id of an offer
+     * @param _decryptionKey: the encryption key for the data 
+     */
+    function releaseDecryptionKey(uint256 _offerId, bytes32 _decryptionKey) external {
+        address sellerIdentity = _getIdentityOfAUser(msg.sender);
+        Offer memory offer = offers[_offerId];
+        require(offer.status == OfferStatus.PAYMENT_RELEASED, "invalid offer status");
+
+        require(listings[offer.listingId].seller == sellerIdentity, "does not have permission");
+        listings[offer.listingId].decryptionKey = _decryptionKey;
+        listings[offer.listingId].status = LisingtingStatus.KEY_RELEASED;
+
+    }
+
 
     /**
      * Releases payment for a listing from escrow
      * @param _offerId: id of an offer
      */
     function releasePayment(uint256 _offerId) public {
-        require(_offerId > 0 && _offerId <= allOffers.length);
+        require(_offerId > 0 && _offerId <= offerIdCounter, "invalid _offerId");
         Offer storage offer = offers[_offerId];
-        require(offer.status == OfferStatus.ACCEPTED);
+        require(offer.status == OfferStatus.ACCEPTED, "invalid offer status");
+        address buyerIdentity = _getIdentityOfAUser(msg.sender);
+        require(buyerIdentity == offer.buyer, "do not have permission");
 
         Reputation storage reputation = reputations[offer.buyer];
         reputations[offer.buyer].score = reputation.score + 1;
@@ -179,13 +187,12 @@ contract DataExchange {
         address sellerIdentity = _getIdentityOfAUser(msg.sender);
         
         Offer memory offer = offers[_offerId];
-        require(offer.status == OfferStatus.PAYMENT_RELEASED);
-        require(offer.buyer == sellerIdentity);
+        require(offer.status == OfferStatus.PAYMENT_RELEASED, "invalid offer status");
+        require( listings[offer.listingId].seller == sellerIdentity, "do not have permission");
 
-        (bool sent,) = sellerIdentity.call{value: offer.price}("");
+        (bool sent,) = msg.sender.call{value: offer.price}("");
         require(sent, "Failed to send Ether");
 
-        // offer.status = OfferStatus.COMPLETED;
         listings[offer.listingId].status = LisingtingStatus.COMPLETED;
     }
 
@@ -195,7 +202,9 @@ contract DataExchange {
      */
     function getDecryptionKey(uint256 _offerId) external returns (bytes32) {
         Offer storage offer = offers[_offerId];
-        require(offer.status == OfferStatus.PAYMENT_RELEASED, "payment not released");
+        require(offer.status == OfferStatus.PAYMENT_RELEASED || offer.status == OfferStatus.COMPLETED , "payment not released");
+        address buyerIdentity = _getIdentityOfAUser(msg.sender);
+        require(buyerIdentity == offer.buyer, "do not have permission");
 
         offer.status = OfferStatus.COMPLETED;
 
@@ -209,4 +218,5 @@ contract DataExchange {
     function getOffersOfAListing(uint256 _listingId) public view returns (Offer[] memory) {
         return listingToOffer[_listingId];
     }
+
 }
