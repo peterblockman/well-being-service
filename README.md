@@ -26,7 +26,7 @@ This is a simple implementation for a well-being service on Ethereum.
     A marketplace for buying and selling data. It also includes a simple reputation system to help buyers and sellers evaluate each other's trustworthiness.
 5. [Helper.sol](https://github.com/peterblockman/well-being-service/blob/main/contracts/Helper.sol)
 
-    It has a single function called "hash". The function takes a string as an input and returns the Keccak-256 hash of the string. It is helpful when we need to convert a string to a hash to input to the functions of the other smart contracts such as `DataExchange` on Remix.
+    It has a single function called "hash". The function takes a string as an input and returns the Keccak-256 hash of the string. This function can be useful when we need to convert a string to a hash for use as input in other smart contracts, such as the `DataExchange` contract on Remix. 
 
 ## Test 
 Use [Remix](https://remix.ethereum.org/)
