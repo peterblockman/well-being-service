@@ -13,7 +13,7 @@ contract Identity is ERC725YCore {
      * @notice Sets the owner of the contract
      * @param _newOwner the owner of the contract. It is the user's wallet smart contract
      * @param _identityRegistry the address of the IdentityRegistry smart contract
-     * @param _name user'S first name
+     * @param _name user's first name
      * @param _age user's age
      */
     constructor(address _newOwner, address _identityRegistry, string memory _name, uint256 _age) {
