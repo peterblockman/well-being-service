@@ -7,9 +7,7 @@ This is a simple implementation for a well-being service on Ethereum.
 
 **Disclaimer**: All the smart contracts are for demonstration purposes. Many security measurements and gas optimizations are not taken into consideration.
 
-### Smart contracts
-
-There are four smart contracts:
+### Smart contracts:
 
 1. [Identity.sol](https://github.com/peterblockman/well-being-service/blob/main/contracts/Identity.sol)
 
@@ -26,6 +24,9 @@ There are four smart contracts:
 4. [DataExchange.sol](https://github.com/peterblockman/well-being-service/blob/main/contracts/DataExchange.sol)
 
     A marketplace for buying and selling data. It also includes a simple reputation system to help buyers and sellers evaluate each other's trustworthiness.
+5. [Helper.sol](https://github.com/peterblockman/well-being-service/blob/main/contracts/Helper.sol)
+
+    It has a single function called "hash". The function takes a string as an input and returns the Keccak-256 hash of the string. It is helpful when we need to convert a string to a hash to input to the functions of the other smart contracts such as `DataExchange` on Remix.
 
 ## Test 
 Use [Remix](https://remix.ethereum.org/)
