@@ -113,12 +113,22 @@ contract SocialGraph {
         user.connectionImpact[_friendIdentity] = _rating;
     }
 
-    function isFriend(address _userIdentity, address _friendIdentity) external view returns (bool) {
-        return users[_userIdentity].friends[_friendIdentity];
+    /**
+     * Check if two users are friends
+     * @param _userAIdentity: the Identity address of a _userA
+     * @param _userBIdentity: the Identity address of a _userB
+     */
+    function isFriend(address _userAIdentity, address _userBIdentity) external view returns (bool) {
+        return users[_userAIdentity].friends[_userBIdentity];
     }
 
-    function getConnectionImpact(address _identity, address _friendIdentity) external view returns (uint256) {
-        return users[_identity].connectionImpact[_friendIdentity];
+    /**
+     * Get connection impact score of two users
+     * @param _userAIdentity: the Identity address of a _userA
+     * @param _userBIdentity: the Identity address of a _userB
+     */
+    function getConnectionImpact(address _userAIdentity, address _userBIdentity) external view returns (uint256) {
+        return users[_userAIdentity].connectionImpact[_userBIdentity];
     }
 
     
