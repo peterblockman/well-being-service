@@ -11,7 +11,7 @@ contract Identity is ERC725YCore {
 
     /**
      * @notice Sets the owner of the contract
-     * @param _newOwner the owner of the contract. It is the user's wallet smart contract
+     * @param _newOwner the owner of the contract. It is the user's wallet address
      * @param _identityRegistry the address of the IdentityRegistry smart contract
      * @param _name user's first name
      * @param _age user's age
